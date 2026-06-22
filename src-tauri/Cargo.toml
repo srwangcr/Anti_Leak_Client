@@ -1,0 +1,25 @@
+[package]
+name = "anti_leak_client"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+image = "0.24"
+rustc-hash = "1.1"
+sha2 = "0.10"
+hex = "0.4"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[lib]
+name = "anti_leak_client"
+path = "src/lib.rs"
+
+[[bin]]
+name = "anti_leak_client"
+path = "src/main.rs"

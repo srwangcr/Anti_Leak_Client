@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anti Leak Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input::placeholder {
+            color: #999;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #result {
+            margin-top: 30px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            padding: 20px;
+        }
+
+        .success {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .success h3 {
+            color: #22c55e;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .error h3 {
+            color: #ef4444;
+            margin-bottom: 10px;
+        }
+
+        .error p {
+            color: #666;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .result-item {
+            margin-bottom: 15px;
+        }
+
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-item strong {
+            display: block;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        code {
+            display: block;
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .info {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Anti Leak Client</h1>
+        <p class="subtitle">Procesa imágenes localmente y obtén sus hashes</p>
+
+        <div class="info">
+            💡 Ingresa la ruta completa a una imagen (ej: /home/usuario/foto.png)
+        </div>
+
+        <div class="input-group">
+            <input 
+                type="text" 
+                id="filePath" 
+                placeholder="Ej: /home/usuario/imagen.png"
+                autocomplete="off"
+            >
+            <button id="procesarBtn">Procesar</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <!-- API de Tauri - Inyectado por Tauri v2 -->
+    <!-- Este comentario es procesado por Tauri durante la compilación -->
+    <!-- TAURI_METADATA_GOES_HERE -->
+
+    <script>
+        console.log('✅ Script principal cargado');
+        console.log('window.__TAURI__:', window.__TAURI__);
+        console.log('window.__TAURI_METADATA__:', window.__TAURI_METADATA__);
+    </script>
+
+    <script>
+        // Para desarrollo: si Tauri no se inyectó, esperamos el evento
+        async function esperarTauri(maxIntentsos = 100) {
+            for (let i = 0; i < maxIntentsos; i++) {
+                if (window.__TAURI__?.core?.invoke) {
+                    console.log('✅ Tauri disponible en intento', i + 1);
+                    return true;
+                }
+                await new Promise(r => setTimeout(r, 50));
+            }
+            console.error('❌ Tauri no se cargó después de', maxIntentsos * 50, 'ms');
+            return false;
+        }
+
+        async function procesarImagen() {
+            const filePath = document.getElementById('filePath').value;
+            const resultDiv = document.getElementById('result');
+
+            console.log('📝 Ruta ingresada:', filePath);
+
+            if (!filePath.trim()) {
+                resultDiv.innerHTML = '<div class="error">⚠️ Por favor ingresa una ruta de archivo</div>';
+                return;
+            }
+
+            try {
+                resultDiv.innerHTML = '<div class="loading">⏳ Procesando...</div>';
+                console.log('🚀 Invocando comando procesar_imagen_local...');
+                
+                // En Tauri v2 con withGlobalTauri: true, invoke está en window.__TAURI__.core.invoke
+                // o window.__TAURI_INVOKE__ si se inyecta directamente
+                const invoke = window.__TAURI__?.core?.invoke || window.__TAURI_INVOKE__;
+
+                if (!invoke) {
+                    console.error('❌ invoke no disponible');
+                    console.log('window keys:', Object.keys(window).filter(k => k.includes('TAURI')));
+                    throw new Error('API de Tauri no detectada. Asegúrate de que la app se abrió desde Tauri.');
+                }
+
+                console.log('✅ Función invoke obtenida');
+                
+                const resultado = await invoke('procesar_imagen_local', { 
+                    file_path: filePath 
+                });
+
+                console.log('✅ Resultado:', resultado);
+                
+                resultDiv.innerHTML = `
+                  <div class="success">
+                    <h3>✅ Procesamiento completado</h3>
+                    <div class="result-item">
+                      <strong>SHA256:</strong>
+                      <code>${resultado.sha256}</code>
+                    </div>
+                    <div class="result-item">
+                      <strong>PHASH:</strong>
+                      <code>${resultado.phash}</code>
+                    </div>
+                  </div>
+                `;
+            } catch (error) {
+                console.error('❌ Error:', error);
+                resultDiv.innerHTML = `
+                  <div class="error">
+                    <h3>❌ Error</h3>
+                    <p>${String(error)}</p>
+                  </div>
+                `;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('✅ DOM cargado, esperando a Tauri...');
+            
+            const tauriListo = await esperarTauri();
+            if (!tauriListo) {
+                console.log('⚠️ Tauri no se cargó, pero intentando de todas formas...');
+            }
+
+            const procesarBtn = document.getElementById('procesarBtn');
+            procesarBtn.addEventListener('click', procesarImagen);
+            console.log('✅ Event listener adjuntado al botón');
+
+            const fileInput = document.getElementById('filePath');
+            fileInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    console.log('📌 Enter presionado');
+                    procesarImagen();
+                }
+            });
+        });
+
+        console.log('✅ Script de control cargado');
+    </script>
+</body>
+</html>
