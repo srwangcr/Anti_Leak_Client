@@ -239,8 +239,10 @@
 
                 console.log('✅ Función invoke obtenida');
                 
+                // Tauri v2 convierte automáticamente los parámetros de Rust (snake_case)
+                // a camelCase para el lado de JS, por eso aquí usamos "filePath".
                 const resultado = await invoke('procesar_imagen_local', { 
-                    file_path: filePath 
+                    filePath: filePath 
                 });
 
                 console.log('✅ Resultado:', resultado);
