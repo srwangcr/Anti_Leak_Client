@@ -1,4 +1,4 @@
-# Anti Leak Client (contraconte)
+# Anti Leak Client
 
 Aplicación de escritorio (Tauri 2 + Rust) que procesa imágenes localmente,
 calcula sus hashes, y opcionalmente busca si esa imagen ya aparece en
