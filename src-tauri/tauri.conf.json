@@ -1,6 +1,6 @@
 {
   "productName": "Anti Leak Client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "com.antileak.client",
   "build": {
     "beforeBuildCommand": "npm run build",
@@ -16,7 +16,8 @@
         "width": 800,
         "height": 600,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "dragDropEnabled": true
       }
     ],
     "security": {

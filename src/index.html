@@ -3,393 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anti Leak Client</title>
+    <title>Anti Leak Client — Evidencia forense de imágenes</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --ink: #1f2937;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+            --bg: #f3f4f6;
+            --ok: #15803d;
+            --warn: #b45309;
+            --err: #b91c1c;
         }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            line-height: 1.5;
+            padding: 24px;
         }
-
-        .container {
+        .app { max-width: 960px; margin: 0 auto; }
+        header {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border-radius: 14px;
+            padding: 28px 32px;
+            margin-bottom: 18px;
+        }
+        header h1 { font-size: 26px; margin-bottom: 6px; }
+        header p { opacity: .9; font-size: 14px; }
+        .card {
             background: white;
+            border: 1px solid var(--line);
             border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
+            padding: 22px 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, .05);
         }
-
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        input {
+        .card h2 { font-size: 17px; margin-bottom: 4px; }
+        .card .hint { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+        .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        input[type=text], input[type=password], input[type=number] {
             flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
+            min-width: 180px;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
             border-radius: 8px;
             font-size: 14px;
-            transition: border-color 0.3s;
+            font-family: inherit;
         }
-
-        input:focus {
-            outline: none;
-            border-color: #667eea;
+        input:focus { outline: 2px solid rgba(79,70,229,.3); border-color: var(--primary); }
+        textarea {
+            width: 100%;
+            min-height: 190px;
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            resize: vertical;
         }
-
-        input::placeholder {
-            color: #999;
-        }
-
         button {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 10px 16px;
             border: none;
             border-radius: 8px;
+            background: var(--primary);
+            color: white;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        button:hover { background: var(--primary-dark); }
+        button.secondary { background: #eef2ff; color: var(--primary-dark); }
+        button.secondary:hover { background: #e0e7ff; }
+        button.danger { background: #fee2e2; color: var(--err); }
+        button.danger:hover { background: #fecaca; }
+        button:disabled { opacity: .55; cursor: wait; }
+        code, .mono {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+            font-size: 12px;
+            word-break: break-all;
         }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        #result {
-            margin-top: 30px;
-        }
-
-        .loading {
+        code { display: block; background: #f9fafb; border: 1px solid var(--line); padding: 9px 11px; border-radius: 6px; margin-top: 4px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-bottom: 12px; }
+        .kv { background: #f9fafb; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+        .kv .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+        .kv .value { font-size: 14px; font-weight: 600; margin-top: 2px; }
+        .msg { padding: 11px 14px; border-radius: 8px; font-size: 13px; margin: 10px 0; }
+        .msg.error { background: #fef2f2; color: var(--err); border-left: 4px solid #ef4444; }
+        .msg.ok { background: #f0fdf4; color: var(--ok); border-left: 4px solid #22c55e; }
+        .msg.info { background: #eff6ff; color: #1d4ed8; border-left: 4px solid #3b82f6; }
+        .list { list-style: none; margin-top: 10px; }
+        .list li { border-top: 1px solid var(--line); padding: 10px 0; font-size: 13px; }
+        .list li:first-child { border-top: none; }
+        .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-right: 8px; }
+        .badge.exacto, .badge.duplicado_exacto { background: #fee2e2; color: var(--err); }
+        .badge.parecido { background: #fef3c7; color: var(--warn); }
+        .badge.nuevo { background: #dcfce7; color: var(--ok); }
+        .badge.pagina { background: #e0e7ff; color: var(--primary-dark); }
+        .dropzone {
+            border: 2px dashed #c7d2fe;
+            border-radius: 10px;
+            padding: 26px;
             text-align: center;
-            color: #667eea;
-            font-weight: 600;
-            padding: 20px;
+            color: var(--muted);
+            background: #fafaff;
+            transition: background .2s, border-color .2s;
         }
-
-        .success {
-            background: #f0fdf4;
-            border-left: 4px solid #22c55e;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .success h3 {
-            color: #22c55e;
-            margin-bottom: 15px;
-        }
-
-        .error {
-            background: #fef2f2;
-            border-left: 4px solid #ef4444;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .error h3 {
-            color: #ef4444;
-            margin-bottom: 10px;
-        }
-
-        .error p {
-            color: #666;
-            font-size: 14px;
-            word-break: break-all;
-        }
-
-        .result-item {
-            margin-bottom: 15px;
-        }
-
-        .result-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .result-item strong {
-            display: block;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-
-        code {
-            display: block;
-            background: #f5f5f5;
-            padding: 12px;
-            border-radius: 6px;
-            font-family: 'Monaco', 'Courier New', monospace;
-            font-size: 12px;
-            word-break: break-all;
-            color: #333;
-            line-height: 1.5;
-        }
-
-        .result-item ul {
-            list-style: none;
-            margin-top: 6px;
-        }
-
-        .result-item li {
-            margin-bottom: 4px;
-        }
-
-        .result-item a {
-            color: #667eea;
-            font-size: 12px;
-            word-break: break-all;
-        }
-
-        .info {
-            background: #eff6ff;
-            border-left: 4px solid #3b82f6;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: #1e40af;
-        }
+        .dropzone.over { background: #eef2ff; border-color: var(--primary); }
+        details summary { cursor: pointer; font-weight: 600; font-size: 15px; }
+        details[open] summary { margin-bottom: 16px; }
+        .small { font-size: 12px; color: var(--muted); }
+        a { color: var(--primary-dark); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+        th { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     </style>
 </head>
 <body>
-    <div class="container">
+<div class="app">
+    <header>
         <h1>🔍 Anti Leak Client</h1>
-        <p class="subtitle">Procesa imágenes localmente y obtén sus hashes</p>
+        <p>Huellas criptográficas, catálogo local, escaneo por lotes e informes forenses. Sin Google y sin API keys.</p>
+    </header>
 
-        <div class="info">
-            💡 Ingresa la ruta completa a una imagen (ej: /home/usuario/foto.png)
+    <section class="card">
+        <h2>1. Analizar una imagen</h2>
+        <p class="hint">Todo se calcula en tu computadora: SHA-256, pHash, dimensiones y EXIF.</p>
+        <div class="row">
+            <input type="text" id="filePath" placeholder="Ruta completa, p. ej. /home/usuario/foto.jpg" autocomplete="off">
+            <button class="secondary" id="pickFileBtn">Examinar…</button>
+            <button id="processBtn">Procesar</button>
         </div>
-
-        <div class="input-group">
-            <input 
-                type="text" 
-                id="filePath" 
-                placeholder="Ej: /home/usuario/imagen.png"
-                autocomplete="off"
-            >
-            <button id="procesarBtn">Procesar</button>
+        <div class="row">
+            <input type="text" id="notes" placeholder="Notas del caso (opcional, se incluyen en el informe)" autocomplete="off">
         </div>
-
-        <div id="result"></div>
-
-        <div id="webSearchSection" style="display:none; margin-top: 20px;">
-            <div class="info">
-                🔎 Buscar esta imagen en internet usa la API de Google Cloud Vision.
-                Necesitás tu propia API key (ver README). No se guarda en ningún lado,
-                solo se usa para esta consulta.
-            </div>
-            <div class="input-group">
-                <input
-                    type="password"
-                    id="apiKey"
-                    placeholder="Tu Google Cloud Vision API key"
-                    autocomplete="off"
-                >
-                <button id="buscarBtn">Buscar en internet</button>
-            </div>
-            <div id="webResult"></div>
+        <label class="small" style="display:block; margin-bottom:12px">
+            <input type="checkbox" id="includeWeb" checked>
+            Incluir búsqueda web en el informe (esto sube la imagen a Yandex solo al generarlo)
+        </label>
+        <div id="analysisResult"></div>
+        <div class="actions" id="imageActions" style="display:none">
+            <button class="secondary" id="registerBtn">Registrar en catálogo</button>
+            <button class="secondary" id="webBtn">Buscar en internet</button>
+            <button id="reportBtn">Generar informe PDF + JSON</button>
         </div>
-    </div>
+        <div id="webResult"></div>
+    </section>
 
-    <!-- API de Tauri - Inyectado por Tauri v2 -->
-    <!-- Este comentario es procesado por Tauri durante la compilación -->
-    <!-- TAURI_METADATA_GOES_HERE -->
+    <section class="card">
+        <h2>2. Catálogo local</h2>
+        <p class="hint">Base de datos SQLite guardada en la carpeta de configuración de la app.</p>
+        <div class="row">
+            <button class="secondary" id="reloadCatalogBtn">Actualizar catálogo</button>
+            <span class="small" id="catalogCount"></span>
+        </div>
+        <div id="catalogResult"></div>
+    </section>
 
-    <script>
-        console.log('✅ Script principal cargado');
-        console.log('window.__TAURI__:', window.__TAURI__);
-        console.log('window.__TAURI_METADATA__:', window.__TAURI_METADATA__);
-    </script>
+    <section class="card">
+        <h2>3. Escaneo por lotes</h2>
+        <p class="hint">Arrastrá una carpeta acá o elegila con el botón. Detecta duplicados y copias manipuladas por distancia de Hamming.</p>
+        <div class="row">
+            <label class="small" for="maxDistance">Tolerancia pHash (0–64):</label>
+            <input type="number" id="maxDistance" value="8" min="0" max="64" style="max-width:110px; flex:none">
+            <button class="secondary" id="pickFolderBtn">Seleccionar carpeta…</button>
+        </div>
+        <div class="dropzone" id="dropzone">📂 Soltá una carpeta aquí para escanearla</div>
+        <div id="scanResult"></div>
+    </section>
 
-    <script>
-        // Para desarrollo: si Tauri no se inyectó, esperamos el evento
-        async function esperarTauri(maxIntentsos = 100) {
-            for (let i = 0; i < maxIntentsos; i++) {
-                if (window.__TAURI__?.core?.invoke) {
-                    console.log('✅ Tauri disponible en intento', i + 1);
-                    return true;
-                }
-                await new Promise(r => setTimeout(r, 50));
-            }
-            console.error('❌ Tauri no se cargó después de', maxIntentsos * 50, 'ms');
-            return false;
-        }
+    <section class="card">
+        <h2>4. Denuncia semiautomática (borrador)</h2>
+        <p class="hint">Genera un informe forense y un borrador estructurado con texto listo para copiar y el paso a paso para reportar la foto. No se envía nada automáticamente.</p>
+        <div class="row">
+            <select id="platformSelect" style="flex:1; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:14px"></select>
+            <button id="draftBtn">Generar borrador de denuncia</button>
+        </div>
+        <p class="small">Si ya hiciste la búsqueda web arriba, se reutiliza ese resultado y no se vuelve a subir la imagen.</p>
+        <div id="draftResult"></div>
+    </section>
 
-        async function procesarImagen() {
-            const filePath = document.getElementById('filePath').value;
-            const resultDiv = document.getElementById('result');
-
-            console.log('📝 Ruta ingresada:', filePath);
-
-            if (!filePath.trim()) {
-                resultDiv.innerHTML = '<div class="error">⚠️ Por favor ingresa una ruta de archivo</div>';
-                return;
-            }
-
-            try {
-                resultDiv.innerHTML = '<div class="loading">⏳ Procesando...</div>';
-                console.log('🚀 Invocando comando procesar_imagen_local...');
-                
-                // En Tauri v2 con withGlobalTauri: true, invoke está en window.__TAURI__.core.invoke
-                // o window.__TAURI_INVOKE__ si se inyecta directamente
-                const invoke = window.__TAURI__?.core?.invoke || window.__TAURI_INVOKE__;
-
-                if (!invoke) {
-                    console.error('❌ invoke no disponible');
-                    console.log('window keys:', Object.keys(window).filter(k => k.includes('TAURI')));
-                    throw new Error('API de Tauri no detectada. Asegúrate de que la app se abrió desde Tauri.');
-                }
-
-                console.log('✅ Función invoke obtenida');
-                
-                // Tauri v2 convierte automáticamente los parámetros de Rust (snake_case)
-                // a camelCase para el lado de JS, por eso aquí usamos "filePath".
-                const resultado = await invoke('procesar_imagen_local', { 
-                    filePath: filePath 
-                });
-
-                console.log('✅ Resultado:', resultado);
-                
-                resultDiv.innerHTML = `
-                  <div class="success">
-                    <h3>✅ Procesamiento completado</h3>
-                    <div class="result-item">
-                      <strong>SHA256:</strong>
-                      <code>${resultado.sha256}</code>
-                    </div>
-                    <div class="result-item">
-                      <strong>PHASH:</strong>
-                      <code>${resultado.phash}</code>
-                    </div>
-                  </div>
-                `;
-
-                // Habilitar la sección de búsqueda en internet para esta misma imagen
-                document.getElementById('webSearchSection').style.display = 'block';
-            } catch (error) {
-                console.error('❌ Error:', error);
-                resultDiv.innerHTML = `
-                  <div class="error">
-                    <h3>❌ Error</h3>
-                    <p>${String(error)}</p>
-                  </div>
-                `;
-            }
-        }
-
-        function renderMatchGroup(titulo, matches) {
-            if (!matches || matches.length === 0) {
-                return `<div class="result-item"><strong>${titulo}:</strong> ninguna coincidencia</div>`;
-            }
-            const links = matches
-                .map(m => `<li><a href="${m.url}" target="_blank" rel="noopener noreferrer">${m.url}</a></li>`)
-                .join('');
-            return `<div class="result-item"><strong>${titulo} (${matches.length}):</strong><ul>${links}</ul></div>`;
-        }
-
-        async function buscarEnInternet() {
-            const filePath = document.getElementById('filePath').value;
-            const apiKey = document.getElementById('apiKey').value;
-            const webResultDiv = document.getElementById('webResult');
-
-            if (!apiKey.trim()) {
-                webResultDiv.innerHTML = '<div class="error">⚠️ Ingresá tu API key de Google Cloud Vision</div>';
-                return;
-            }
-
-            try {
-                webResultDiv.innerHTML = '<div class="loading">⏳ Buscando en internet...</div>';
-
-                const invoke = window.__TAURI__?.core?.invoke || window.__TAURI_INVOKE__;
-                const resultado = await invoke('buscar_imagen_en_internet', {
-                    filePath: filePath,
-                    apiKey: apiKey
-                });
-
-                const totalMatches =
-                    resultado.full_matches.length +
-                    resultado.partial_matches.length +
-                    resultado.pages_with_matches.length;
-
-                if (totalMatches === 0) {
-                    webResultDiv.innerHTML = '<div class="success"><h3>✅ No se encontraron coincidencias públicas</h3></div>';
-                    return;
-                }
-
-                webResultDiv.innerHTML = `
-                  <div class="error">
-                    <h3>⚠️ Se encontraron ${totalMatches} coincidencia(s)</h3>
-                    ${renderMatchGroup('Coincidencias exactas', resultado.full_matches)}
-                    ${renderMatchGroup('Coincidencias parciales', resultado.partial_matches)}
-                    ${renderMatchGroup('Páginas donde aparece', resultado.pages_with_matches)}
-                  </div>
-                `;
-            } catch (error) {
-                console.error('❌ Error de búsqueda web:', error);
-                webResultDiv.innerHTML = `
-                  <div class="error">
-                    <h3>❌ Error</h3>
-                    <p>${String(error)}</p>
-                  </div>
-                `;
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', async () => {
-            console.log('✅ DOM cargado, esperando a Tauri...');
-            
-            const tauriListo = await esperarTauri();
-            if (!tauriListo) {
-                console.log('⚠️ Tauri no se cargó, pero intentando de todas formas...');
-            }
-
-            const procesarBtn = document.getElementById('procesarBtn');
-            procesarBtn.addEventListener('click', procesarImagen);
-            console.log('✅ Event listener adjuntado al botón');
-
-            const fileInput = document.getElementById('filePath');
-            fileInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    console.log('📌 Enter presionado');
-                    procesarImagen();
-                }
-            });
-
-            const buscarBtn = document.getElementById('buscarBtn');
-            buscarBtn.addEventListener('click', buscarEnInternet);
-        });
-
-        console.log('✅ Script de control cargado');
-    </script>
+    <details class="card">
+        <summary>5. Bóveda segura (opcional)</summary>
+        <p class="hint">Guarda credenciales de integraciones futuras en el keychain del sistema operativo. Nunca se escriben en disco.</p>
+        <div class="row">
+            <input type="text" id="vaultKey" placeholder="Clave (p. ej. proveedor_opcional)">
+            <input type="password" id="vaultValue" placeholder="Secreto a guardar">
+        </div>
+        <div class="row">
+            <button class="secondary" id="vaultSaveBtn">Guardar</button>
+            <button class="secondary" id="vaultReadBtn">Leer</button>
+            <button class="danger" id="vaultDeleteBtn">Eliminar</button>
+        </div>
+        <div id="vaultResult"></div>
+    </details>
+</div>
+<script type="module" src="/main.js"></script>
 </body>
 </html>
