@@ -158,3 +158,13 @@ escala y es más manual.
 - `src/` — frontend (HTML/JS, sin framework)
 - `src-tauri/` — backend Rust / configuración de Tauri
 - `.github/workflows/` — pipeline de release multiplataforma
+
+## Hoja de Ruta y Madurez del Producto
+
+Estado actual: **v0.1.0 — Prototipo Funcional Desktop** (cálculo local de SHA-256 / pHash en Rust, consulta bajo demanda a Google Cloud Vision Web Detection y pipeline CI multiplataforma).
+
+- [x] **Fase 1 — Core Local & Búsqueda Puntual:** Interfaz Tauri 2 + backend Rust calculando SHA-256 y pHash localmente, integración con Google Cloud Vision API y workflow de compilación para Linux/Windows/macOS.
+- [ ] **Fase 2 — Almacenamiento Seguro & Base de Datos Local:** Guardar credenciales API en el *keychain* nativo del sistema operativo (`keyring`) y persistir un catálogo SQLite local de imágenes registradas con sus huellas SHA-256 y pHash.
+- [ ] **Fase 3 — Escaneo por Lotes y Comparación Local:** Permitir arrastrar carpetas completas (*drag & drop*), detectar duplicados o imágenes manipuladas dentro de discos locales mediante distancia de Hamming sobre pHash sin consumir cuota de API.
+- [ ] **Fase 4 — Evidencia Forense y Reportes:** Generación automática de reportes PDF/JSON con marca de tiempo, metadatos EXIF, hashes criptográficos y capturas/URLs de coincidencias encontradas en la web.
+- [ ] **Fase 5 — Distribución Firmada:** Firma digital de binarios (Apple Notarization / Windows Authenticode) y actualizaciones automáticas integradas mediante `tauri-plugin-updater`.
