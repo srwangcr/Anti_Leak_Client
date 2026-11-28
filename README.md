@@ -151,15 +151,17 @@ cargo test -- --ignored          # incluye la prueba de red contra Yandex
 ## Build de producción (para tu propio sistema operativo)
 
 ```bash
-npm run build
+npm run build:app
 ```
 
-Genera el instalador en `src-tauri/target/release/bundle/`, pero
+Compila el frontend y genera el instalador en
+`src-tauri/target/release/bundle/`, pero
 **solo para el sistema operativo en el que corras el comando**. Tauri
 empaqueta contra las librerías nativas del SO (WebView2 en Windows,
 WebKit en macOS, webkit2gtk en Linux), así que no hay "compilación
 cruzada" real: un Mac genera `.dmg`/`.app`, un Windows genera
-`.msi`/`.exe`, un Linux genera `.deb`/`.AppImage`/`.rpm`.
+`.msi`/`.exe`, un Linux genera `.deb`/`.rpm` (el AppImage se desactivó
+porque depende de `linuxdeploy`/FUSE y fallaba en CI).
 
 ## Exportar a multiplataforma (Windows + macOS + Linux)
 

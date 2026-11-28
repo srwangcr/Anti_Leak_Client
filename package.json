@@ -4,9 +4,11 @@
   "description": "Anti Leak Client - Evidencia forense de imágenes 100% local",
   "type": "module",
   "scripts": {
+    "tauri": "tauri",
     "dev": "tauri dev",
     "dev:ui": "vite",
-    "build": "vite build && tauri build",
+    "build": "vite build",
+    "build:app": "tauri build",
     "preview": "vite preview",
     "type-check": "tsc --noEmit"
   },
